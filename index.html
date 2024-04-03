@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hangman Game</title>
+    <link rel="stylesheet" href="test.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Hangman Game</h1>
+        <div id="hangman">
+            <pre>
+            --------
+            |      |
+            |     
+            |     
+            |     
+            |     
+            --------
+            </pre>
+        </div>
+        <p id="word">_ _ _ _ _ _ _</p>
+        <p id="turns">You have 10 turns left...</p>
+        <form id="wordForm">
+            <label for="wordInput">Enter the word to guess:</label>
+            <input type="text" id="wordInput" name="wordInput" required>
+            <button type="submit">Start Game</button>
+        </form>
+        <input type="text" id="guessInput" placeholder="Enter your guess" disabled>
+        <button id="guessButton" disabled>Guess</button>
+        <p id="message"></p>
+    </div>
+
+    <script>
+        const wordForm = document.getElementById("wordForm");
+        const wordInputElement = document.getElementById("wordInput");
+        const guessInputElement = document.getElementById("guessInput");
+        const guessButton = document.getElementById("guessButton");
+        const hangmanElement = document.getElementById("hangman");
+        const wordElement = document.getElementById("word");
+        const turnsElement = document.getElementById("turns");
+        const messageElement = document.getElementById("message");
+
+        let word = "";
+        let turns = 10;
+        let guessMade = "";
+        let hangmanStage = 0;
+
+        const hangmanDisplay = [
+            "--------\n",
+            "  |     |\n",
+            "  |     \n",
+            "  |     \n",
+            "  |     \n",
+            "  |     \n",
+            "--------\n",
+            " |    O\n",
+            " |   /|\\\n",
+            " |   / \\\n",
+            " |     \n",
+            "--------\n"
+        ];
+
+        function updateHangman() {
+            let hangmanString = "";
+            for (let i = 0; i <= hangmanStage; i++) {
+                hangmanString += hangmanDisplay[i];
+            }
+            hangmanElement.innerHTML = "<pre>" + hangmanString + "</pre>";
+        }
+
+        function updateWord() {
+            let displayedWord = "";
+            for (let letter of word) {
+                if (guessMade.includes(letter)) {
+                    displayedWord += letter + " ";
+                } else {
+                    displayedWord += "_ ";
+                }
+            }
+            wordElement.textContent = displayedWord;
+        }
+
+        function checkWin() {
+            if (!word.split("").some(letter => !guessMade.includes(letter))) {
+                messageElement.textContent = "Congratulations, you won!";
+                guessInputElement.disabled = true;
+                guessButton.disabled = true;
+            }
+        }
+
+        function guess() {
+            const guess = guessInputElement.value.toLowerCase();
+            if (!guess.match(/^[a-zA-Z]$/)) {
+                messageElement.textContent = "Enter a valid character";
+                return;
+            }
+            if (guessMade.includes(guess)) {
+                messageElement.textContent = "You already guessed that letter";
+                return;
+            }
+            if (!word.includes(guess)) {
+                hangmanStage++;
+                updateHangman();
+                turns--;
+                turnsElement.textContent = `You have ${turns} turns left...`;
+                if (turns === 0) {
+                    messageElement.textContent = `You lost and let the man die! The word was "${word}"`;
+                    guessInputElement.disabled = true;
+                    guessButton.disabled = true;
+                }
+            }
+            guessMade += guess;
+            updateWord();
+            checkWin();
+            guessInputElement.value = "";
+        }
+
+        wordForm.addEventListener("submit", function(event) {
+            event.preventDefault();
+            word = wordInputElement.value.trim().toLowerCase();
+            if (!word.match(/^[a-zA-Z]+$/)) {
+                messageElement.textContent = "Enter a valid word (letters only)";
+                return;
+            }
+            wordInputElement.disabled = true;
+            guessInputElement.disabled = false;
+            guessButton.disabled = false;
+            updateWord();
+            turnsElement.textContent = "You have 10 turns left...";
+            wordInputElement.value = "";
+        });
+
+        guessButton.addEventListener("click", function(event) {
+            event.preventDefault();
+            guess();
+        });
+    </script>
+</body>
+</html>
